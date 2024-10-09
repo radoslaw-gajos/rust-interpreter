@@ -44,17 +44,6 @@ impl MakeSandwich {
 impl Expression for MakeSandwich {
     fn interpret(&self, context: &Context) {
         add_sandwich_to_context(context, Some(&self.ingredients));
-        /*
-        let mut sandwich = Sandwich::new();
-        for ing_str in &self.ingredients {
-            let ingredient = context.borrow_mut().remove(ing_str)
-                .expect("Can't make a sandwich without {ing_str}!");
-            let ingredient = ingredient.downcast_ref::<Ingredient>()
-                .expect("{ing_str} is not an Ingredient!");
-            sandwich.ingredients.push(*ingredient);
-        }
-        context.borrow_mut().insert("sandwich".to_string(), Box::new(sandwich));
-        */
     }
 }
 
