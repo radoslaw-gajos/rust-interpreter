@@ -29,6 +29,54 @@ impl Sandwich {
 }
 
 // implementations of Expression
+struct And {
+    expressions: Vec<Box<dyn Expression>>,
+}
+
+impl And {
+    fn new(expressions: Vec<Box<dyn Expression>>) -> Self {
+        Self {
+            expressions,
+        }
+    }
+}
+
+impl Expression for And {
+    fn interpret(&self, context: &Context) -> ExpResult {
+        for exp in &self.expressions {
+            let result = exp.interpret(context);
+            if result.is_err() {
+                return Err(Box::new("Expression failed"));
+            }
+        }
+        Ok(())
+    }
+}
+
+struct Or {
+    expressions: Vec<Box<dyn Expression>>,
+}
+
+impl Or {
+    fn new(expressions: Vec<Box<dyn Expression>>) -> Self {
+        Self {
+            expressions,
+        }
+    }
+}
+
+impl Expression for Or {
+    fn interpret(&self, context: &Context) -> ExpResult {
+        for exp in &self.expressions {
+            let result = exp.interpret(context);
+            if result.is_ok() {
+                return Ok(())
+            }
+        }
+        Err(Box::new("Expression failed"))
+    }
+}
+
 struct MakeSandwich {
     ingredients: Vec<String>,
 }
@@ -133,5 +181,86 @@ mod tests {
         // then
         assert!(result.is_ok());
         assert!(context.borrow().get("sandwich").is_none());
+    }
+
+    struct AlwaysSuccess;
+    impl Expression for AlwaysSuccess {
+        fn interpret(&self, context: &Context) -> ExpResult {
+            Ok(())
+        }
+    }
+
+    struct AlwaysFail;
+    impl Expression for AlwaysFail {
+        fn interpret(&self, context: &Context) -> ExpResult {
+            Err(Box::new("This expression always fails"))
+        }
+    }
+
+    #[test]
+    fn should_successfully_interpret_and() {
+        // given
+        let context: Context = RefCell::new(HashMap::new());
+        let and_expression = And::new(vec!(
+            Box::new(AlwaysSuccess),
+            Box::new(AlwaysSuccess),
+        ));
+
+        // when
+        let result = and_expression.interpret(&context);
+
+        // then
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn and_should_fail() {
+        // given
+        let context: Context = RefCell::new(HashMap::new());
+        let and_expression = And::new(vec!(
+            Box::new(AlwaysSuccess),
+            Box::new(AlwaysFail),
+        ));
+
+        // when
+        let result = and_expression.interpret(&context);
+
+        // then
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn or_should_succeed() {
+        // given
+        let context: Context = RefCell::new(HashMap::new());
+        let or_expression = Or::new(vec!(
+            Box::new(AlwaysFail),
+            Box::new(AlwaysFail),
+            Box::new(AlwaysFail),
+            Box::new(AlwaysSuccess),
+        ));
+
+        // when
+        let result = or_expression.interpret(&context);
+
+        // then
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn or_should_fail() {
+        // given
+        let context: Context = RefCell::new(HashMap::new());
+        let or_expression = Or::new(vec!(
+            Box::new(AlwaysFail),
+            Box::new(AlwaysFail),
+            Box::new(AlwaysFail),
+        ));
+
+        // when
+        let result = or_expression.interpret(&context);
+
+        // then
+        assert!(result.is_err());
     }
 }
