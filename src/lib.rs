@@ -2,18 +2,18 @@ use std::cell::RefCell;
 use std::any::Any;
 use std::collections::HashMap;
 
-type Context = RefCell<HashMap<String, Box<dyn Any>>>;
+pub type Context = RefCell<HashMap<String, Box<dyn Any>>>;
 type Ingredient = ();
 type ExpResult = Result<(), Box<dyn Any>>;
 
 // interface
-trait Expression {
+pub trait Expression {
     fn interpret(&self, context: &Context) -> ExpResult;
 }
 
 // POD
-struct Sandwich {
-    ingredients: Vec<Ingredient>,
+pub struct Sandwich {
+    pub ingredients: Vec<Ingredient>,
 }
 
 impl Sandwich {
@@ -29,12 +29,12 @@ impl Sandwich {
 }
 
 // implementations of Expression
-struct And {
+pub struct And {
     expressions: Vec<Box<dyn Expression>>,
 }
 
 impl And {
-    fn new(expressions: Vec<Box<dyn Expression>>) -> Self {
+    pub fn new(expressions: Vec<Box<dyn Expression>>) -> Self {
         Self {
             expressions,
         }
@@ -53,12 +53,12 @@ impl Expression for And {
     }
 }
 
-struct Or {
+pub struct Or {
     expressions: Vec<Box<dyn Expression>>,
 }
 
 impl Or {
-    fn new(expressions: Vec<Box<dyn Expression>>) -> Self {
+    pub fn new(expressions: Vec<Box<dyn Expression>>) -> Self {
         Self {
             expressions,
         }
@@ -77,12 +77,29 @@ impl Expression for Or {
     }
 }
 
-struct MakeSandwich {
-    ingredients: Vec<String>,
+pub struct Cry {
+}
+
+impl Cry {
+    pub fn new() -> Self {
+        Self {
+        }
+    }
+}
+
+impl Expression for Cry {
+    fn interpret(&self, context: &Context) -> ExpResult {
+        println!("*cries*");
+        Ok(())
+    }
+}
+
+pub struct MakeSandwich {
+    pub ingredients: Vec<String>,
 }
 
 impl MakeSandwich {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             ingredients: Vec::new(),
         }
@@ -115,11 +132,11 @@ fn add_sandwich_to_context(context: &Context, ingredients: Option<&Vec<String>>)
         Ok(())
 }
 
-struct EatSandwich {
+pub struct EatSandwich {
 }
 
 impl EatSandwich {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
         }
     }
